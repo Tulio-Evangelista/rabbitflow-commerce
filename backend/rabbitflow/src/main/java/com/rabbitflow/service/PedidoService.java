@@ -4,8 +4,10 @@ package com.rabbitflow.service;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
+import com.rabbitflow.producer.PedidoProducer;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,14 +18,16 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
+    private final PedidoProducer pedidoProducer;
 
-
-    public PedidoService(PedidoRepository pedidoRepository, ProdutoRepository produtoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, ProdutoRepository produtoRepository, PedidoProducer pedidoProducer) {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
+        this.pedidoProducer = pedidoProducer;
     }
 
 
+    @Transactional
     public Pedido criarPedido(List<ItemPedido> itens) {
 
         Pedido pedido = new Pedido();
@@ -45,7 +49,11 @@ public class PedidoService {
 
         pedido.setValorTotal(total);
 
-        return pedidoRepository.save(pedido);
+        Pedido salvo = pedidoRepository.save(pedido);
+        pedidoProducer.enviarPedido(salvo);
+
+        return salvo;
+
 
     }
 
