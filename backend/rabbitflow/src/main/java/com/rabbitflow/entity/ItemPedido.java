@@ -24,6 +24,17 @@ public class ItemPedido {
     private Produto produto;
 
 
+    public ItemPedido(Long id, Integer quantidade, Double precoUnitario, Pedido pedido, Produto produto) {
+        this.id = id;
+        this.quantidade = quantidade;
+        this.precoUnitario = precoUnitario;
+        this.pedido = pedido;
+        this.produto = produto;
+    }
+
+    public ItemPedido() {
+    }
+
     public Long getId() {
         return id;
     }
