@@ -5,6 +5,7 @@ import com.rabbitflow.DTO.PedidoDTO;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
+import com.rabbitflow.enums.StatusPedido;
 import com.rabbitflow.producer.PedidoProducer;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
@@ -33,6 +34,7 @@ public class PedidoService {
 
         Pedido pedido = new Pedido();
         pedido.setItens(itens);
+        pedido.setStatus(StatusPedido.CRIADO);
 
         double total = 0.0;
 
