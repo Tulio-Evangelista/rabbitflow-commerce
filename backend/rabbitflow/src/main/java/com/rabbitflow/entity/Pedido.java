@@ -32,6 +32,8 @@ public class Pedido {
         this.status = StatusPedido.CRIADO;
     }
 
+    public Pedido() {
+    }
 
     public List<ItemPedido> getItens() {
         return itens;
