@@ -2,6 +2,10 @@ package com.rabbitflow.service;
 
 
 import com.rabbitflow.DTO.PedidoDTO;
+import com.rabbitflow.DTO.request.ItemPedidoRequestDTO;
+import com.rabbitflow.DTO.request.PedidoRequestDTO;
+import com.rabbitflow.DTO.response.ItemPedidoResponseDTO;
+import com.rabbitflow.DTO.response.PedidoResponseDTO;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
@@ -12,6 +16,7 @@ import com.rabbitflow.repository.ProdutoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,44 +35,72 @@ public class PedidoService {
 
 
     @Transactional
-    public Pedido criarPedido(List<ItemPedido> itens) {
+    public PedidoResponseDTO criarPedido(PedidoRequestDTO requestDTO) {
 
         Pedido pedido = new Pedido();
-        pedido.setItens(itens);
+
         pedido.setStatus(StatusPedido.CRIADO);
+
+        List<ItemPedido> itens = new ArrayList<>();
 
         double total = 0.0;
 
-        for (ItemPedido item : itens) {
+        for (ItemPedidoRequestDTO itemDTO : requestDTO.itens()) {
 
-            Produto produto = produtoRepository.findById(item.getProduto().getId())
+            Produto produto = produtoRepository.findById(itemDTO.produtoId())
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
-            if (produto.getEstoque() < item.getQuantidade()) {
-                throw new RuntimeException("Estoque insuficiente para o produto: " + produto.getNome());
+
+            if (produto.getEstoque() < itemDTO.quantidade()) {
+                throw new RuntimeException(
+                        "Estoque insuficiente para o produto: " + produto.getNome()
+                );
             }
 
-           if (item.getQuantidade() <= 0) {
-                throw new RuntimeException("Quantidade deve ser maior que zero para o produto: " + produto.getNome());
+            if (itemDTO.quantidade() <= 0) {
+                throw new RuntimeException(
+                        "Quantidade deve ser maior que zero"
+                );
             }
 
+            ItemPedido item = new ItemPedido();
 
             item.setProduto(produto);
+            item.setQuantidade(itemDTO.quantidade());
             item.setPrecoUnitario(produto.getPreco());
             item.setPedido(pedido);
 
-            total += produto.getPreco() * item.getQuantidade();
+            itens.add(item);
+
+            total += produto.getPreco() * itemDTO.quantidade();
         }
 
+        pedido.setItens(itens);
         pedido.setValorTotal(total);
 
         Pedido salvo = pedidoRepository.save(pedido);
-        pedidoProducer.enviarPedido(new PedidoDTO(salvo.getId(), salvo.getValorTotal()));
 
-        return salvo;
+        pedidoProducer.enviarPedido(
+                new PedidoDTO(
+                        salvo.getId(),
+                        salvo.getValorTotal()
+                )
+        );
 
+        return new PedidoResponseDTO(
+                salvo.getId(),
+                salvo.getValorTotal(),
+                salvo.getStatus(),
+                salvo.getItens()
+                        .stream()
+                        .map(item -> new ItemPedidoResponseDTO(
+                                item.getProduto().getNome(),
+                                item.getQuantidade(),
+                                item.getPrecoUnitario()
+                        ))
+                        .toList()
 
+        );
     }
-
 
 }

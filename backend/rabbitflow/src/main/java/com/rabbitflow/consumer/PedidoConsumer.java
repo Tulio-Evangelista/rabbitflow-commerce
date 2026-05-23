@@ -8,6 +8,7 @@ import com.rabbitflow.entity.Produto;
 import com.rabbitflow.enums.StatusPedido;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -34,14 +35,14 @@ public class PedidoConsumer {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
     }
-
+    @Transactional
     @RabbitListener(queues = "pedido-queue")
     public void receberPedido(PedidoDTO pedidoDTO) {
 
         System.out.println("Pedido recebido: " + pedidoDTO.id());
         System.out.println("Valor total: " + pedidoDTO.valorTotal());
 
-        Pedido pedido = pedidoRepository.findById(pedidoDTO.id())
+        Pedido pedido = pedidoRepository.buscarPedidoCompleto(pedidoDTO.id())
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
 

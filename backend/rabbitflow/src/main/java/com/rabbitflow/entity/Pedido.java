@@ -1,6 +1,7 @@
 package com.rabbitflow.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.rabbitflow.DTO.request.ItemPedidoRequestDTO;
 import com.rabbitflow.enums.StatusPedido;
 import jakarta.persistence.*;
 
