@@ -1,5 +1,6 @@
 package com.rabbitflow.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rabbitflow.enums.StatusPedido;
 import jakarta.persistence.*;
 
@@ -23,6 +24,7 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     private List<ItemPedido> itens;
 
