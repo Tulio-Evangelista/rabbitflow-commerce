@@ -1,6 +1,8 @@
 package com.rabbitflow.controller;
 
 
+import com.rabbitflow.DTO.request.PedidoRequestDTO;
+import com.rabbitflow.DTO.response.PedidoResponseDTO;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.service.PedidoService;
@@ -24,8 +26,8 @@ public class PedidoController {
 
 
     @PostMapping
-    public Pedido criarPedido(@RequestBody List<ItemPedido> itens) {
-        return pedidoService.criarPedido(itens);
+    public PedidoResponseDTO criarPedido(@RequestBody PedidoRequestDTO pedidoRequestDTO) {
+        return pedidoService.criarPedido(pedidoRequestDTO);
 
     }
 

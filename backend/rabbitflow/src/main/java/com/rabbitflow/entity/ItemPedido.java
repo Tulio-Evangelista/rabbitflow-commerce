@@ -1,6 +1,7 @@
 package com.rabbitflow.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,9 +16,11 @@ public class ItemPedido {
 
     private Double precoUnitario;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "pedido_id")
     private Pedido pedido;
+
 
     @ManyToOne
     @JoinColumn(name = "produto_id")
