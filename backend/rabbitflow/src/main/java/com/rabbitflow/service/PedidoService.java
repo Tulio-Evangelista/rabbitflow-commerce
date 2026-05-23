@@ -43,6 +43,15 @@ public class PedidoService {
             Produto produto = produtoRepository.findById(item.getProduto().getId())
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
+            if (produto.getEstoque() < item.getQuantidade()) {
+                throw new RuntimeException("Estoque insuficiente para o produto: " + produto.getNome());
+            }
+
+           if (item.getQuantidade() <= 0) {
+                throw new RuntimeException("Quantidade deve ser maior que zero para o produto: " + produto.getNome());
+            }
+
+
             item.setProduto(produto);
             item.setPrecoUnitario(produto.getPreco());
             item.setPedido(pedido);
