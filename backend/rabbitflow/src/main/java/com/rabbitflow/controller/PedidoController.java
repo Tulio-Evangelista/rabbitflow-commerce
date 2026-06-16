@@ -6,6 +6,7 @@ import com.rabbitflow.DTO.response.PedidoResponseDTO;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.service.PedidoService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +27,7 @@ public class PedidoController {
 
 
     @PostMapping
-    public PedidoResponseDTO criarPedido(@RequestBody PedidoRequestDTO pedidoRequestDTO) {
+    public PedidoResponseDTO criarPedido(@RequestBody @Valid PedidoRequestDTO pedidoRequestDTO) {
         return pedidoService.criarPedido(pedidoRequestDTO);
 
     }

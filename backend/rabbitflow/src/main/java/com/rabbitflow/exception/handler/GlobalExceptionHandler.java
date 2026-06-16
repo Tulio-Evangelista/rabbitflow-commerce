@@ -3,10 +3,15 @@ import com.rabbitflow.exception.EstoqueInsuficienteException;
 import com.rabbitflow.exception.ProdutoInativoException;
 import com.rabbitflow.exception.ProdutoNaoEncontradoException;
 import com.rabbitflow.exception.dto.ErrorResponse;
+import com.rabbitflow.exception.dto.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.time.LocalDateTime;
 
@@ -79,6 +84,29 @@ public class GlobalExceptionHandler {
                 .body(erro);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrorResponse> tratarMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
+
+
+        Map<String, String> erros = new HashMap<>();
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        erros.put(error.getField(), error.getDefaultMessage()));
+
+        ValidationErrorResponse response =
+                new ValidationErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.BAD_REQUEST.value(),
+                        erros
+                );
+
+        return ResponseEntity.badRequest()
+                .body(response);
+    
+    }
 
 
 }
