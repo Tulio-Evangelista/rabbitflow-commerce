@@ -10,6 +10,9 @@ import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
 import com.rabbitflow.enums.StatusPedido;
+import com.rabbitflow.exception.EstoqueInsuficienteException;
+import com.rabbitflow.exception.ProdutoInativoException;
+import com.rabbitflow.exception.QuantidadeInsuficienteException;
 import com.rabbitflow.producer.PedidoProducer;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
@@ -48,18 +51,17 @@ public class PedidoService {
         for (ItemPedidoRequestDTO itemDTO : requestDTO.itens()) {
 
             Produto produto = produtoRepository.findById(itemDTO.produtoId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                    .orElseThrow(() -> new ProdutoInativoException(itemDTO.produtoId()
+                    ));
 
 
             if (produto.getEstoque() < itemDTO.quantidade()) {
-                throw new RuntimeException(
-                        "Estoque insuficiente para o produto: " + produto.getNome()
+                throw new EstoqueInsuficienteException(itemDTO.produtoId()
                 );
             }
 
             if (itemDTO.quantidade() <= 0) {
-                throw new RuntimeException(
-                        "Quantidade deve ser maior que zero"
+                throw new QuantidadeInsuficienteException(itemDTO.produtoId()
                 );
             }
 
