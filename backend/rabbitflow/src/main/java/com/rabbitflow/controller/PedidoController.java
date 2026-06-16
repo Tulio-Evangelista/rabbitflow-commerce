@@ -7,10 +7,7 @@ import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.service.PedidoService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +27,10 @@ public class PedidoController {
     public PedidoResponseDTO criarPedido(@RequestBody @Valid PedidoRequestDTO pedidoRequestDTO) {
         return pedidoService.criarPedido(pedidoRequestDTO);
 
+    }
+    @GetMapping("/{id}")
+    public PedidoResponseDTO buscarPedidoPorId(@PathVariable Long id) {
+        return pedidoService.buscarPedidoPorId(id);
     }
 
 }

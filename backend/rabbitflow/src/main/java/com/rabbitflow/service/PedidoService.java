@@ -11,6 +11,7 @@ import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
 import com.rabbitflow.enums.StatusPedido;
 import com.rabbitflow.exception.EstoqueInsuficienteException;
+import com.rabbitflow.exception.PedidoNaoEncontradoException;
 import com.rabbitflow.exception.ProdutoInativoException;
 import com.rabbitflow.exception.QuantidadeInsuficienteException;
 import com.rabbitflow.producer.PedidoProducer;
@@ -18,6 +19,7 @@ import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,4 +107,29 @@ public class PedidoService {
         );
     }
 
+
+
+
+
+    public PedidoResponseDTO buscarPedidoPorId(Long id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+
+        return new PedidoResponseDTO(
+                pedido.getId(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getItens()
+                        .stream()
+                        .map(item -> new ItemPedidoResponseDTO(
+                                item.getProduto().getNome(),
+                                item.getQuantidade(),
+                                item.getPrecoUnitario()
+                        ))
+                        .toList()
+        );
+    }
+
 }
+
+
