@@ -5,6 +5,7 @@ import com.rabbitflow.DTO.request.PedidoRequestDTO;
 import com.rabbitflow.DTO.response.PedidoResponseDTO;
 import com.rabbitflow.entity.ItemPedido;
 import com.rabbitflow.entity.Pedido;
+import com.rabbitflow.enums.StatusPedido;
 import com.rabbitflow.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,11 @@ public class PedidoController {
     @GetMapping("/{id}")
     public PedidoResponseDTO buscarPedidoPorId(@PathVariable Long id) {
         return pedidoService.buscarPedidoPorId(id);
+    }
+
+    @GetMapping("/status/{status}")
+    public List<PedidoResponseDTO> buscarPedidoPorStatus(@PathVariable  StatusPedido status) {
+        return pedidoService.buscarPedidoPorStatus(status);
     }
 
 }

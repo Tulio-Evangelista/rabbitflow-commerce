@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PedidoService {
@@ -128,6 +129,31 @@ public class PedidoService {
                         ))
                         .toList()
         );
+    }
+
+    public List<PedidoResponseDTO> buscarPedidoPorStatus( StatusPedido status) {
+        List<Pedido> pedidos = pedidoRepository.findByStatus(status);
+
+        return pedidos.stream()
+                .map(pedido -> new PedidoResponseDTO(
+                        pedido.getId(),
+                        pedido.getValorTotal(),
+                        pedido.getStatus(),
+                        pedido.getItens()
+                                .stream()
+                                .map(item -> new ItemPedidoResponseDTO(
+                                        item.getProduto().getNome(),
+                                        item.getQuantidade(),
+                                        item.getPrecoUnitario()
+                                ))
+                                .toList()
+                ))
+                .toList();
+
+
+
+
+
     }
 
 }

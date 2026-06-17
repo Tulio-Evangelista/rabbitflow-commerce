@@ -2,9 +2,11 @@ package com.rabbitflow.repository;
 
 import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.entity.Produto;
+import com.rabbitflow.enums.StatusPedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
@@ -17,5 +19,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
        WHERE p.id = :id
        """)
     Optional<Pedido> buscarPedidoCompleto(Long id);
+
+
+   List<Pedido> findByStatus(StatusPedido status);
 
 }
