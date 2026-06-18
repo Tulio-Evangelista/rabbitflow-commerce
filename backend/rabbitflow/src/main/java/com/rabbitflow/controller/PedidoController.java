@@ -1,6 +1,7 @@
 package com.rabbitflow.controller;
 
 
+import com.rabbitflow.DTO.PedidoEdicaoDTO;
 import com.rabbitflow.DTO.request.PedidoRequestDTO;
 import com.rabbitflow.DTO.response.PedidoResponseDTO;
 import com.rabbitflow.entity.ItemPedido;
@@ -37,6 +38,12 @@ public class PedidoController {
     @GetMapping("/status/{status}")
     public List<PedidoResponseDTO> buscarPedidoPorStatus(@PathVariable  StatusPedido status) {
         return pedidoService.buscarPedidoPorStatus(status);
+    }
+
+
+    @PutMapping("/{id}/editar")
+    public PedidoResponseDTO editarPedido(@PathVariable Long id, @RequestBody PedidoEdicaoDTO pedidoEdicaoDTO) {
+        return pedidoService.editarPedidoPorId(id, pedidoEdicaoDTO);
     }
 
 }

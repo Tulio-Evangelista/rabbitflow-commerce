@@ -1,7 +1,9 @@
 package com.rabbitflow.service;
 
 
+import com.rabbitflow.DTO.ItemPedidoEdicaoDTO;
 import com.rabbitflow.DTO.PedidoDTO;
+import com.rabbitflow.DTO.PedidoEdicaoDTO;
 import com.rabbitflow.DTO.request.ItemPedidoRequestDTO;
 import com.rabbitflow.DTO.request.PedidoRequestDTO;
 import com.rabbitflow.DTO.response.ItemPedidoResponseDTO;
@@ -15,6 +17,7 @@ import com.rabbitflow.exception.PedidoNaoEncontradoException;
 import com.rabbitflow.exception.ProdutoInativoException;
 import com.rabbitflow.exception.QuantidadeInsuficienteException;
 import com.rabbitflow.producer.PedidoProducer;
+import com.rabbitflow.repository.ItemPedidoRepository;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
 import jakarta.transaction.Transactional;
@@ -31,11 +34,13 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
     private final PedidoProducer pedidoProducer;
 
-    public PedidoService(PedidoRepository pedidoRepository, ProdutoRepository produtoRepository, PedidoProducer pedidoProducer) {
+    public PedidoService(PedidoRepository pedidoRepository, ProdutoRepository produtoRepository,ItemPedidoRepository itemPedidoRepository ,PedidoProducer pedidoProducer) {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
         this.pedidoProducer = pedidoProducer;
     }
 
@@ -149,13 +154,53 @@ public class PedidoService {
                                 .toList()
                 ))
                 .toList();
-
-
-
-
-
     }
 
+
+
+    public PedidoResponseDTO editarPedidoPorId(Long id, PedidoEdicaoDTO pedidoEdicaoDTO) {
+        Pedido pedido = pedidoRepository.buscarPedidoCompleto(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+        boolean podeEditar =
+                pedido.getStatus() == StatusPedido.CRIADO
+                        || pedido.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO || pedido.getStatus() == StatusPedido.PAGAMENTO_APROVADO || pedido.getStatus() == StatusPedido.PAGAMENTO_RECUSADO;
+
+        if (!podeEditar) {
+            throw new IllegalStateException("Somente pedidos com status CRIADO ou AGUARDANDO PAGAMENTO podem ser editados.");
+        }
+
+        for (ItemPedidoEdicaoDTO dto : pedidoEdicaoDTO.itens()) {
+            ItemPedido item = itemPedidoRepository.findById(dto.itemPedidoId())
+                    .orElseThrow(() -> new IllegalArgumentException("ItemPedido com ID " + dto.itemPedidoId() + " não encontrado"));
+            if (!item.getPedido().getId().equals(id)) {
+                throw new IllegalArgumentException("Item não pertence ao pedido");
+            }
+            item.setQuantidade(dto.quantidade());
+
+        }
+            Double novoValorTotal = pedido.getItens().stream()
+                    .mapToDouble(item -> item.getPrecoUnitario() * item.getQuantidade())
+                    .sum();
+            pedido.setValorTotal(novoValorTotal);
+            pedido.setStatus(StatusPedido.EDITADO);
+            pedidoRepository.save(pedido);
+
+
+            return new PedidoResponseDTO(
+                    pedido.getId(),
+                    pedido.getValorTotal(),
+                    pedido.getStatus(),
+                    pedido.getItens()
+                            .stream()
+                            .map(item -> new ItemPedidoResponseDTO(
+                                    item.getProduto().getNome(),
+                                    item.getQuantidade(),
+                                    item.getPrecoUnitario()
+                            ))
+                            .toList()
+            );
+
+    }
 }
 
 
