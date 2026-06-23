@@ -45,5 +45,18 @@ public class PedidoController {
     public PedidoResponseDTO editarPedido(@PathVariable Long id, @RequestBody PedidoEdicaoDTO pedidoEdicaoDTO) {
         return pedidoService.editarPedidoPorId(id, pedidoEdicaoDTO);
     }
+    @DeleteMapping("/{id}/cancelar")
+    public PedidoResponseDTO cancelarPedido(@PathVariable Long id) {
+        return pedidoService.cancelarPedido(id);
+    }
 
+    @DeleteMapping("/{id}/itens/{itemId}")
+    public PedidoResponseDTO deleteItemDoPedido(@PathVariable Long id, @PathVariable Long itemId) {
+        return pedidoService.deleteItemDoPedido(id, itemId);
+    }
+
+    @PostMapping("/{id}/itens/{itemID}")
+    public PedidoResponseDTO adicionarItemAoPedido(@PathVariable Long id, @PathVariable Long itemID ) {
+        return pedidoService.adicionarItemAoPedido(id, itemID);
+    }
 }

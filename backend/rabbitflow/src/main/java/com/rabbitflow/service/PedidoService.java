@@ -113,10 +113,6 @@ public class PedidoService {
         );
     }
 
-
-
-
-
     public PedidoResponseDTO buscarPedidoPorId(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new PedidoNaoEncontradoException(id));
@@ -155,8 +151,6 @@ public class PedidoService {
                 ))
                 .toList();
     }
-
-
 
     public PedidoResponseDTO editarPedidoPorId(Long id, PedidoEdicaoDTO pedidoEdicaoDTO) {
         Pedido pedido = pedidoRepository.buscarPedidoCompleto(id)
@@ -201,6 +195,123 @@ public class PedidoService {
             );
 
     }
+
+    public PedidoResponseDTO cancelarPedido(Long id){
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+
+        if (pedido.getStatus() == StatusPedido.CRIADO || pedido.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO) {
+            pedido.setStatus(StatusPedido.CANCELADO);
+            pedidoRepository.save(pedido);
+        } else {
+            throw new IllegalStateException("Somente pedidos com status CRIADO ou AGUARDANDO PAGAMENTO podem ser cancelados.");
+        }return new PedidoResponseDTO(
+                pedido.getId(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getItens()
+                        .stream()
+                        .map(item -> new ItemPedidoResponseDTO(
+                                item.getProduto().getNome(),
+                                item.getQuantidade(),
+                                item.getPrecoUnitario()
+                        ))
+                        .toList()
+        );
+    }
+
+    public PedidoResponseDTO deleteItemDoPedido(Long id, Long itemId){
+
+        Pedido pedido = pedidoRepository.buscarPedidoCompleto(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+
+        boolean podeEditar =
+                pedido.getStatus() == StatusPedido.CRIADO
+                        || pedido.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO || pedido.getStatus() == StatusPedido.PAGAMENTO_APROVADO || pedido.getStatus() == StatusPedido.PAGAMENTO_RECUSADO;
+
+
+        if (!podeEditar) {
+            throw new IllegalStateException("Somente pedidos com status CRIADO ou AGUARDANDO PAGAMENTO podem ser editados.");
+        }else {
+
+            ItemPedido itemPedido = itemPedidoRepository.findById(itemId)
+                    .orElseThrow(() -> new IllegalArgumentException("ItemPedido com ID " + itemId + " não encontrado"));
+
+            if (!itemPedido.getPedido().getId().equals(id)) {
+                throw new IllegalArgumentException("Item não pertence ao pedido");
+            }
+            itemPedidoRepository.delete(itemPedido);
+
+            Double novoValorTotal = pedido.getItens().stream()
+                    .mapToDouble(item -> item.getPrecoUnitario() * item.getQuantidade())
+                    .sum();
+            if (pedido.getItens().isEmpty()) {
+                pedido.setStatus(StatusPedido.CANCELADO);
+            }
+
+            pedido.setValorTotal(novoValorTotal);
+            Pedido salvo = pedidoRepository.save(pedido);
+
+        }return new PedidoResponseDTO(
+                pedido.getId(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getItens()
+                        .stream()
+                        .map(item -> new ItemPedidoResponseDTO(
+                                item.getProduto().getNome(),
+                                item.getQuantidade(),
+                                item.getPrecoUnitario()
+                        ))
+                        .toList()
+        );
+    }
+
+    public PedidoResponseDTO adicionarItemAoPedido(long id, Long itemId){
+
+        Pedido pedido= pedidoRepository.buscarPedidoCompleto(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+
+        Boolean podeEditar = pedido.getStatus() == StatusPedido.CRIADO
+                            || pedido.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO || pedido.getStatus() == StatusPedido.PAGAMENTO_APROVADO || pedido.getStatus() == StatusPedido.PAGAMENTO_RECUSADO;
+
+        if (!podeEditar) {
+            throw new IllegalStateException("Somente pedidos com status CRIADO ou AGUARDANDO PAGAMENTO podem ser editados.");
+        } Produto produto = produtoRepository.findById(itemId)
+                .orElseThrow(() -> new ProdutoInativoException(itemId));
+
+        if (produto.getEstoque() < 1) {
+            throw new EstoqueInsuficienteException(itemId);
+        } ItemPedido item = new ItemPedido();
+        item.setProduto(produto);
+        item.setQuantidade(1);
+        item.setPrecoUnitario(produto.getPreco());
+        item.setPedido(pedido);
+
+        pedido.getItens().add(item);
+        Double novoValorTotal = pedido.getItens().stream()
+                .mapToDouble(i -> i.getPrecoUnitario() * i.getQuantidade())
+                .sum();
+        pedido.setValorTotal(novoValorTotal);
+        pedido.setStatus(StatusPedido.EDITADO);
+        pedidoRepository.save(pedido);
+
+        return new PedidoResponseDTO(
+                pedido.getId(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getItens()
+                        .stream()
+                        .map(i -> new ItemPedidoResponseDTO(
+                                i.getProduto().getNome(),
+                                i.getQuantidade(),
+                                i.getPrecoUnitario()
+                        ))
+                        .toList()
+        );
+    }
+
+
 }
 
 
