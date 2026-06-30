@@ -21,12 +21,12 @@ import com.rabbitflow.repository.ItemPedidoRepository;
 import com.rabbitflow.repository.PedidoRepository;
 import com.rabbitflow.repository.ProdutoRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PedidoService {
@@ -132,10 +132,28 @@ public class PedidoService {
         );
     }
 
-    public List<PedidoResponseDTO> buscarPedidoPorStatus( StatusPedido status) {
+    public Page<PedidoResponseDTO> buscarTodosPedidos(Pageable pageable) {
+        return pedidoRepository.findAll(pageable).map(pedido -> new PedidoResponseDTO(
+                pedido.getId(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getItens()
+                        .stream()
+                        .map(item -> new ItemPedidoResponseDTO(
+                                item.getProduto().getNome(),
+                                item.getQuantidade(),
+                                item.getPrecoUnitario()
+                        ))
+                        .toList()
+        ));
+
+
+    }
+
+    public Page<PedidoResponseDTO> buscarPedidoPorStatus(StatusPedido status, Pageable pageable) {
         List<Pedido> pedidos = pedidoRepository.findByStatus(status);
 
-        return pedidos.stream()
+        return (Page<PedidoResponseDTO>) pedidos.stream()
                 .map(pedido -> new PedidoResponseDTO(
                         pedido.getId(),
                         pedido.getValorTotal(),
@@ -148,8 +166,8 @@ public class PedidoService {
                                         item.getPrecoUnitario()
                                 ))
                                 .toList()
-                ))
-                .toList();
+                ));
+
     }
 
     public PedidoResponseDTO editarPedidoPorId(Long id, PedidoEdicaoDTO pedidoEdicaoDTO) {
@@ -310,6 +328,8 @@ public class PedidoService {
                         .toList()
         );
     }
+
+
 
 
 }

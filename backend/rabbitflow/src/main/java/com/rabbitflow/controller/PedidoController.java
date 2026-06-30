@@ -9,6 +9,9 @@ import com.rabbitflow.entity.Pedido;
 import com.rabbitflow.enums.StatusPedido;
 import com.rabbitflow.service.PedidoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,16 +31,22 @@ public class PedidoController {
     @PostMapping
     public PedidoResponseDTO criarPedido(@RequestBody @Valid PedidoRequestDTO pedidoRequestDTO) {
         return pedidoService.criarPedido(pedidoRequestDTO);
-
     }
+
+    @GetMapping("/listar")
+    public Page<PedidoResponseDTO> buscarTodosPedidos(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return pedidoService.buscarTodosPedidos(pageable);
+    }
+
+
     @GetMapping("/{id}")
     public PedidoResponseDTO buscarPedidoPorId(@PathVariable Long id) {
         return pedidoService.buscarPedidoPorId(id);
     }
 
     @GetMapping("/status/{status}")
-    public List<PedidoResponseDTO> buscarPedidoPorStatus(@PathVariable  StatusPedido status) {
-        return pedidoService.buscarPedidoPorStatus(status);
+    public Page<PedidoResponseDTO> buscarPedidoPorStatus(@PathVariable  StatusPedido status, Pageable pageable) {
+        return pedidoService.buscarPedidoPorStatus(status, pageable);
     }
 
 
@@ -59,4 +68,7 @@ public class PedidoController {
     public PedidoResponseDTO adicionarItemAoPedido(@PathVariable Long id, @PathVariable Long itemID ) {
         return pedidoService.adicionarItemAoPedido(id, itemID);
     }
+
+
+
 }
